@@ -1,0 +1,46 @@
+version: '3'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend  # Path to backend Dockerfile directory
+    image: neeraj46665/three-tier-backend:latest
+    container_name: backend
+    environment:
+      - PORT=3500
+      - USE_DB_AUTH=false  # Set to true if MongoDB authentication is required
+      - MONGO_CONN_STR=mongodb://mongo:27017/your_db_name  # MongoDB connection string
+    ports:
+      - "3500:3500"
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend  # Path to frontend Dockerfile directory
+    image: neeraj46665/three-tier-frontend:latest
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
